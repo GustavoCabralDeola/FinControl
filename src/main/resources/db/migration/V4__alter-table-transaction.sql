@@ -1,0 +1,3 @@
+ALTER TABLE transactions
+    ADD COLUMN amount DOUBLE PRECISION NOT NULL,
+ADD COLUMN category_purpose VARCHAR(20) NOT NULL;
