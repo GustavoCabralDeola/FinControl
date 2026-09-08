@@ -2,6 +2,7 @@ package br.com.fincontrol.domain.transaction;
 
 import br.com.fincontrol.domain.category.Category;
 import br.com.fincontrol.domain.customer.Customer;
+import br.com.fincontrol.domain.enums.CategoryPurpose;
 import br.com.fincontrol.domain.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,7 @@ import lombok.Setter;
 
 import java.util.UUID;
 
-@Table(name = "transaction")
+@Table(name = "transactions")
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -27,11 +28,16 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
+    private double amount;
+
+    @Enumerated(EnumType.STRING)
+    private CategoryPurpose categoryPurpose;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
-    private Category category;
+    private Category categoryId;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
-    private Customer customer;
+    private Customer customerId;
 }
