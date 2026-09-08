@@ -1,4 +1,3 @@
 package br.com.fincontrol.domain.customer.dto;
 
-public class CreateCustomerDto {
-}
+public record CreateCustomerDto(String name, int age) {}

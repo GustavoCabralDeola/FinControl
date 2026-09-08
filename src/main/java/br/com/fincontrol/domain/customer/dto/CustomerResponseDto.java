@@ -1,4 +1,4 @@
 package br.com.fincontrol.domain.customer.dto;
 
-public class CustomerResponseDto {
+public record CustomerResponseDto (int id, String name, int age){
 }
