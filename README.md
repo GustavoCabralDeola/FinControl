@@ -1,2 +1,2 @@
 # FinControl
-Just a small project to improve more my java skills
+Sistema de controle de gastos residenciais.
