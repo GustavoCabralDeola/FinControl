@@ -1,0 +1,250 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#" (click)="$event.preventDefault(); setSection('overview')">
+      <span class="brand-mark">F</span>
+      <span>Fin<span class="brand-light">Control</span></span>
+    </a>
+
+    <p class="nav-label">MENU PRINCIPAL</p>
+    <nav aria-label="Menu principal">
+      <button [class.active]="activeSection === 'overview'" (click)="setSection('overview')">
+        <span class="nav-icon">⌂</span> Visão geral
+      </button>
+      <button [class.active]="activeSection === 'people'" (click)="setSection('people')">
+        <span class="nav-icon">♙</span> Pessoas
+      </button>
+      <button [class.active]="activeSection === 'categories'" (click)="setSection('categories')">
+        <span class="nav-icon">▦</span> Categorias
+      </button>
+      <button [class.active]="activeSection === 'transactions'" (click)="setSection('transactions')">
+        <span class="nav-icon">↕</span> Transações
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <span class="status-dot"></span>
+      <div><strong>Controle familiar</strong><small>Finanças em dia</small></div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">FINANÇAS RESIDENCIAIS</p>
+        <h1>
+          @switch (activeSection) {
+            @case ('overview') { Visão geral }
+            @case ('people') { Pessoas }
+            @case ('categories') { Categorias }
+            @case ('transactions') { Transações }
+          }
+        </h1>
+      </div>
+      <button class="refresh-button" (click)="refresh()" [disabled]="loading">
+        <span>↻</span> Atualizar
+      </button>
+    </header>
+
+    @if (errorMessage) {
+      <div class="notice error" role="alert">{{ errorMessage }}</div>
+    }
+    @if (successMessage) {
+      <div class="notice success" role="status">{{ successMessage }}</div>
+    }
+    @if (loading) {
+      <div class="loading-bar"></div>
+    }
+
+    @if (activeSection === 'overview') {
+      <section class="welcome">
+        <div>
+          <p class="eyebrow">RESUMO DA CASA</p>
+          <h2>Organização que cabe no seu dia.</h2>
+          <p>Acompanhe receitas, despesas e o saldo de todos em um só lugar.</p>
+        </div>
+        <div class="welcome-art" aria-hidden="true"><span>R$</span><i></i><b></b></div>
+      </section>
+
+      <section class="stats-grid" aria-label="Resumo financeiro">
+        <article class="stat-card">
+          <div class="stat-heading"><span class="stat-icon green">↗</span><span>Receitas totais</span></div>
+          <strong>{{ money(peopleReport?.total?.revenues) }}</strong>
+          <small>Somatório de todas as pessoas</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-heading"><span class="stat-icon red">↘</span><span>Despesas totais</span></div>
+          <strong>{{ money(peopleReport?.total?.expenditures) }}</strong>
+          <small>Somatório de todas as pessoas</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-heading"><span class="stat-icon blue">＝</span><span>Saldo líquido</span></div>
+          <strong>{{ money(peopleReport?.total?.balance) }}</strong>
+          <small>Receitas menos despesas</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-heading"><span class="stat-icon purple">♙</span><span>Pessoas</span></div>
+          <strong>{{ customers.length }}</strong>
+          <small>{{ categories.length }} categorias cadastradas</small>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">ACOMPANHAMENTO</p><h2>Saldo por pessoa</h2></div>
+          <button class="text-button" (click)="setSection('people')">Ver pessoas <span>→</span></button>
+        </div>
+        @if (peopleReport?.people?.length) {
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PESSOA</th><th>RECEITAS</th><th>DESPESAS</th><th>SALDO</th></tr></thead>
+              <tbody>
+                @for (person of peopleReport?.people; track person.customerId) {
+                  <tr>
+                    <td><span class="avatar">{{ person.name.charAt(0).toUpperCase() }}</span><strong>{{ person.name }}</strong></td>
+                    <td class="positive">{{ money(person.revenues) }}</td>
+                    <td class="negative">{{ money(person.expenditures) }}</td>
+                    <td><strong>{{ money(person.balance) }}</strong></td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot><tr><td>Total geral</td><td>{{ money(peopleReport?.total?.revenues) }}</td><td>{{ money(peopleReport?.total?.expenditures) }}</td><td>{{ money(peopleReport?.total?.balance) }}</td></tr></tfoot>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state"><span>♙</span><strong>Nenhuma pessoa cadastrada</strong><p>Cadastre uma pessoa para começar a acompanhar as finanças.</p><button class="button-primary" (click)="setSection('people')">Cadastrar pessoa</button></div>
+        }
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">MOVIMENTAÇÕES</p><h2>Transações recentes</h2></div>
+          <button class="text-button" (click)="setSection('transactions')">Ver transações <span>→</span></button>
+        </div>
+        @if (transactions.length) {
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>DESCRIÇÃO</th><th>PESSOA</th><th>CATEGORIA</th><th>TIPO</th><th>VALOR</th></tr></thead>
+              <tbody>
+                @for (transaction of transactions.slice(0, 5); track transaction.id) {
+                  <tr>
+                    <td><strong>{{ transaction.description }}</strong></td><td>{{ transaction.customerName }}</td>
+                    <td>{{ transaction.categoryDescription }}</td>
+                    <td><span class="badge" [class.badge-income]="transaction.transactionType === 'Revenue'">{{ transaction.transactionType === 'Revenue' ? 'Receita' : 'Despesa' }}</span></td>
+                    <td [class.positive]="transaction.transactionType === 'Revenue'" [class.negative]="transaction.transactionType === 'Expenditure'">{{ money(transaction.amount) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="quiet-empty">Suas transações cadastradas aparecerão aqui.</p>
+        }
+      </section>
+    }
+
+    @if (activeSection === 'people') {
+      <div class="content-grid">
+        <section class="panel form-panel">
+          <div class="panel-heading"><div><p class="eyebrow">CADASTRO</p><h2>{{ customerForm.id ? 'Editar pessoa' : 'Nova pessoa' }}</h2></div></div>
+          <form (ngSubmit)="saveCustomer()" #customerNgForm="ngForm">
+            <label for="person-name">Nome completo</label>
+            <input id="person-name" name="name" [(ngModel)]="customerForm.name" required maxlength="200" placeholder="Ex.: Ana Silva">
+            <label for="person-age">Idade</label>
+            <input id="person-age" name="age" [(ngModel)]="customerForm.age" type="number" min="0" required>
+            <div class="form-actions">
+              <button class="button-primary" type="submit" [disabled]="customerNgForm.invalid">{{ customerForm.id ? 'Salvar alterações' : 'Cadastrar pessoa' }}</button>
+              @if (customerForm.id) { <button class="button-secondary" type="button" (click)="resetCustomerForm()">Cancelar</button> }
+            </div>
+          </form>
+        </section>
+        <section class="panel list-panel">
+          <div class="panel-heading"><div><p class="eyebrow">CADASTRADAS</p><h2>Pessoas da casa <span class="count">{{ customers.length }}</span></h2></div></div>
+          @if (customers.length) {
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>NOME</th><th>IDADE</th><th class="actions-heading">AÇÕES</th></tr></thead>
+                <tbody>
+                  @for (customer of customers; track customer.id) {
+                    <tr><td><span class="avatar">{{ customer.name.charAt(0).toUpperCase() }}</span><strong>{{ customer.name }}</strong></td><td>{{ customer.age }} anos</td><td class="actions"><button aria-label="Editar pessoa" (click)="editCustomer(customer)">Editar</button><button class="danger-link" aria-label="Excluir pessoa" (click)="deleteCustomer(customer)">Excluir</button></td></tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else { <p class="quiet-empty">Ainda não há pessoas cadastradas.</p> }
+        </section>
+      </div>
+      @if (peopleReport; as report) {
+        <section class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">RESUMO FINANCEIRO</p><h2>Receitas e despesas por pessoa</h2></div></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>PESSOA</th><th>RECEITAS</th><th>DESPESAS</th><th>SALDO</th></tr></thead>
+            <tbody>@for (person of report.people; track person.customerId) { <tr><td><strong>{{ person.name }}</strong></td><td class="positive">{{ money(person.revenues) }}</td><td class="negative">{{ money(person.expenditures) }}</td><td><strong>{{ money(person.balance) }}</strong></td></tr> }</tbody>
+            <tfoot><tr><td>Total geral</td><td>{{ money(report.total.revenues) }}</td><td>{{ money(report.total.expenditures) }}</td><td>{{ money(report.total.balance) }}</td></tr></tfoot>
+          </table></div>
+        </section>
+      }
+    }
+
+    @if (activeSection === 'categories') {
+      <div class="content-grid">
+        <section class="panel form-panel">
+          <div class="panel-heading"><div><p class="eyebrow">CADASTRO</p><h2>Nova categoria</h2></div></div>
+          <form (ngSubmit)="saveCategory()" #categoryNgForm="ngForm">
+            <label for="category-description">Descrição</label>
+            <input id="category-description" name="description" [(ngModel)]="categoryForm.description" required maxlength="400" placeholder="Ex.: Alimentação">
+            <label for="category-purpose">Finalidade</label>
+            <select id="category-purpose" name="purpose" [(ngModel)]="categoryForm.purpose" required>
+              <option value="Expenditure">Despesa</option><option value="Revenue">Receita</option><option value="Both">Ambas</option>
+            </select>
+            <button class="button-primary" type="submit" [disabled]="categoryNgForm.invalid">Cadastrar categoria</button>
+          </form>
+        </section>
+        <section class="panel list-panel">
+          <div class="panel-heading"><div><p class="eyebrow">ORGANIZAÇÃO</p><h2>Categorias <span class="count">{{ categories.length }}</span></h2></div></div>
+          @if (categories.length) {
+            <div class="category-list">
+              @for (category of categories; track category.id) {
+                <div class="category-row"><span class="category-icon">▦</span><div><strong>{{ category.description }}</strong><small>{{ category.purpose === 'Both' ? 'Receitas e despesas' : category.purpose === 'Revenue' ? 'Receitas' : 'Despesas' }}</small></div><span class="badge">{{ category.purpose === 'Both' ? 'Ambas' : category.purpose === 'Revenue' ? 'Receita' : 'Despesa' }}</span></div>
+              }
+            </div>
+          } @else { <p class="quiet-empty">Cadastre categorias para classificar as movimentações.</p> }
+        </section>
+      </div>
+      @if (categoryReport; as report) {
+        <section class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">ANÁLISE</p><h2>Totais por categoria</h2></div></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>CATEGORIA</th><th>RECEITAS</th><th>DESPESAS</th><th>SALDO</th></tr></thead>
+            <tbody>@for (category of report.categories; track category.categoryId) { <tr><td><strong>{{ category.description }}</strong></td><td class="positive">{{ money(category.revenues) }}</td><td class="negative">{{ money(category.expenditures) }}</td><td><strong>{{ money(category.balance) }}</strong></td></tr> }</tbody>
+            <tfoot><tr><td>Total geral</td><td>{{ money(report.total.revenues) }}</td><td>{{ money(report.total.expenditures) }}</td><td>{{ money(report.total.balance) }}</td></tr></tfoot>
+          </table></div>
+        </section>
+      }
+    }
+
+    @if (activeSection === 'transactions') {
+      <section class="panel transaction-form">
+        <div class="panel-heading"><div><p class="eyebrow">LANÇAMENTO</p><h2>Nova transação</h2><p class="panel-subtitle">A categoria precisa aceitar o tipo de movimento escolhido.</p></div></div>
+        <form (ngSubmit)="saveTransaction()" #transactionNgForm="ngForm" class="transaction-grid">
+          <div class="field-wide"><label for="transaction-description">Descrição</label><input id="transaction-description" name="description" [(ngModel)]="transactionForm.description" required maxlength="400" placeholder="Ex.: Compras do mercado"></div>
+          <div><label for="transaction-type">Tipo</label><select id="transaction-type" name="transactionType" [ngModel]="transactionForm.transactionType" (ngModelChange)="changeTransactionType($event)" required><option value="Expenditure">Despesa</option><option value="Revenue">Receita</option></select></div>
+          <div><label for="transaction-amount">Valor</label><input id="transaction-amount" name="amount" [(ngModel)]="transactionForm.amount" type="number" min="0.01" step="0.01" required></div>
+          <div><label for="transaction-person">Pessoa</label><select id="transaction-person" name="customerId" [(ngModel)]="transactionForm.customerId" required><option value="" disabled>Selecione uma pessoa</option>@for (customer of customers; track customer.id) { <option [value]="customer.id">{{ customer.name }}{{ customer.age < 18 ? ' (menor de idade)' : '' }}</option> }</select></div>
+          <div><label for="transaction-category">Categoria</label><select id="transaction-category" name="categoryId" [(ngModel)]="transactionForm.categoryId" required><option value="" disabled>Selecione uma categoria</option>@for (category of availableCategories(); track category.id) { <option [value]="category.id">{{ category.description }}</option> }</select></div>
+          <div class="field-wide"><button class="button-primary" type="submit" [disabled]="transactionNgForm.invalid || !customers.length || !availableCategories().length">Cadastrar transação</button></div>
+        </form>
+        @if (!customers.length || !categories.length) { <p class="inline-hint">Cadastre ao menos uma pessoa e uma categoria compatível antes de lançar transações.</p> }
+      </section>
+      <section class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">HISTÓRICO</p><h2>Transações cadastradas <span class="count">{{ transactions.length }}</span></h2></div></div>
+        @if (transactions.length) {
+          <div class="table-wrap"><table>
+            <thead><tr><th>DESCRIÇÃO</th><th>PESSOA</th><th>CATEGORIA</th><th>TIPO</th><th>VALOR</th></tr></thead>
+            <tbody>@for (transaction of transactions; track transaction.id) { <tr><td><strong>{{ transaction.description }}</strong></td><td>{{ transaction.customerName }}</td><td>{{ transaction.categoryDescription }}</td><td><span class="badge" [class.badge-income]="transaction.transactionType === 'Revenue'">{{ transaction.transactionType === 'Revenue' ? 'Receita' : 'Despesa' }}</span></td><td [class.positive]="transaction.transactionType === 'Revenue'" [class.negative]="transaction.transactionType === 'Expenditure'">{{ money(transaction.amount) }}</td></tr> }</tbody>
+          </table></div>
+        } @else { <p class="quiet-empty">Nenhuma transação lançada ainda.</p> }
+      </section>
+    }
+    <footer>FinControl <span>•</span> Controle simples para uma vida mais leve.</footer>
+  </main>
+</div>
