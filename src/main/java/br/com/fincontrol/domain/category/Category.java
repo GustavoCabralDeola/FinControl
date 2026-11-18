@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.UUID;
+import jakarta.persistence.Column;
 
 @Table(name = "category")
 @Entity
@@ -17,10 +18,12 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Category {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+    @Column(nullable = false, length = 400)
     private String description;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private CategoryPurpose purpose;
 
 }

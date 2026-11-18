@@ -1,4 +1,6 @@
 package br.com.fincontrol.domain.customer.dto;
 
-public record CustomerResponseDto (int id, String name, int age){
+import java.util.UUID;
+
+public record CustomerResponseDto(UUID id, String name, int age) {
 }
